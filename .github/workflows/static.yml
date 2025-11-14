@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVA: El Verdadero Indicador de Valor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 140, 0, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 30px;
+            padding: 50px;
+            margin: 30px 0;
+            box-shadow: 
+                0 30px 80px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: slideIn 0.8s ease-out;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00, #ffa500);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3.5em;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 107, 0, 0.5)); }
+            50% { filter: drop-shadow(0 0 40px rgba(255, 140, 0, 0.8)); }
+        }
+
+        h2 {
+            color: #ff8c00;
+            font-size: 2.3em;
+            margin-bottom: 30px;
+            border-left: 6px solid #ff6b00;
+            padding-left: 20px;
+            font-weight: 800;
+        }
+
+        h3 {
+            color: #ffa500;
+            font-weight: 700;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            position: relative;
+        }
+
+        .hero-subtitle {
+            font-size: 1.6em;
+            color: #b0b0b0;
+            margin-top: 20px;
+            font-weight: 300;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .metric-card {
+            padding: 40px;
+            border-radius: 25px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .metric-card:hover::before {
+            width: 500px;
+            height: 500px;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        }
+
+        .bad-metric {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2d2d2d 100%);
+            border: 2px solid #666;
+            color: #e0e0e0;
+        }
+
+        .good-metric {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            color: white;
+            box-shadow: 0 20px 50px rgba(255, 107, 0, 0.4);
+        }
+
+        .formula-box {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            padding: 35px;
+            border-radius: 20px;
+            margin: 25px 0;
+            border-left: 6px solid #ff6b00;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .formula-box:hover {
+            transform: scale(1.02);
+            border-left-width: 10px;
+            box-shadow: 0 15px 40px rgba(255, 107, 0, 0.3);
+        }
+
+        .formula-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.1));
+        }
+
+        .interactive-chart {
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 350px;
+            margin: 30px 0;
+            padding: 30px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .bar-chart::before {
+            content: '';
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: rgba(255, 107, 0, 0.3);
+        }
+
+        .bar {
+            width: 100px;
+            background: linear-gradient(to top, #ff6b00, #ff8c00, #ffa500);
+            border-radius: 15px 15px 0 0;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: growBar 1.5s ease-out;
+            box-shadow: 0 -10px 40px rgba(255, 107, 0, 0.5);
+        }
+
+        @keyframes growBar {
+            from {
+                height: 0;
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .bar:hover {
+            filter: brightness(1.2);
+            transform: scale(1.08);
+            box-shadow: 0 -15px 60px rgba(255, 140, 0, 0.8);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 0.95em;
+            white-space: nowrap;
+            color: #b0b0b0;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #ff8c00;
+            white-space: nowrap;
+            font-size: 1.2em;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 25px 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(255, 107, 0, 0.4);
+            animation: pulse 2s infinite;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 15px 50px rgba(255, 107, 0, 0.4);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 20px 70px rgba(255, 140, 0, 0.6);
+            }
+        }
+
+        .example-scenario {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            padding: 35px;
+            border-radius: 25px;
+            margin: 25px 0;
+            border: 2px solid #ff6b00;
+            box-shadow: 0 10px 40px rgba(255, 107, 0, 0.2);
+        }
+
+        .scenario-title {
+            color: #ff8c00;
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .calculation-step {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            border-left: 5px solid #ff6b00;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .calculation-step:hover {
+            transform: translateX(10px);
+            border-left-width: 8px;
+            box-shadow: 0 5px 20px rgba(255, 107, 0, 0.3);
+        }
+
+        .result-positive {
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 1.4em;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .result-negative {
+            color: #f87171;
+            font-weight: bold;
+            font-size: 1.4em;
+            text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+        }
+
+        .icon {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 5px 15px rgba(255, 107, 0, 0.3));
+        }
+
+        .key-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .key-point::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .key-point:hover::before {
+            opacity: 1;
+        }
+
+        .key-point:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #ff8c00;
+            box-shadow: 0 20px 60px rgba(255, 107, 0, 0.5);
+        }
+
+        .key-point > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 25px 0;
+            border-collapse: collapse;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .comparison-table td {
+            padding: 20px;
+            border-bottom: 1px solid #3a3a3a;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-table tr:hover td {
+            background: #3a3a3a;
+            transform: scale(1.02);
+        }
+
+        .visual-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-item {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 180px;
+            margin: 15px;
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            transition: all 0.3s ease;
+            color: #e0e0e0;
+        }
+
+        .flow-item:hover {
+            border-color: #ff8c00;
+            transform: scale(1.1);
+            box-shadow: 0 15px 50px rgba(255, 107, 0, 0.4);
+        }
+
+        .arrow {
+            font-size: 2.5em;
+            color: #ff8c00;
+            margin: 0 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+
+        .conclusion-box {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 1.4em;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(255, 107, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .conclusion-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .conclusion-box > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .interactive-toggle {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            color: #e0e0e0;
+        }
+
+        .interactive-toggle:hover {
+            border-color: #ff8c00;
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3);
+        }
+
+        .toggle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #ff8c00;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.active {
+            transform: rotate(180deg);
+        }
+
+        .toggle-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            margin-top: 0;
+        }
+
+        .toggle-content.active {
+            max-height: 2000px;
+            margin-top: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%);
+            padding: 30px;
+            border-radius: 20px;
+            border-left: 5px solid #ff6b00;
+            transition: all 0.3s ease;
+            color: #e0e0e0;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 107, 0, 0.3);
+            border-left-width: 8px;
+        }
+
+        .info-card h4 {
+            color: #ff8c00;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00, #ffa500);
+            border-radius: 15px;
+            transition: width 2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .bar-chart {
+                height: 280px;
+            }
+
+            .slide {
+                padding: 30px;
+            }
+
+            .visual-flow {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Slide 1: Hero -->
+        <div class="slide hero">
+            <h1>💎 EVA: Economic Value Added</h1>
+            <p class="hero-subtitle">El Verdadero Indicador que Agrega Valor en Finanzas Corporativas</p>
+            <div class="highlight-box">
+                ⚠️ La Utilidad Neta NO cuenta toda la historia
+            </div>
+        </div>
+
+        <!-- Slide 2: El Problema -->
+        <div class="slide">
+            <h2>🚨 El Problema con la Utilidad Neta</h2>
+            <div class="comparison-container">
+                <div class="metric-card bad-metric">
+                    <div class="icon">📊</div>
+                    <h3>Utilidad Neta</h3>
+                    <p style="font-size: 1.2em; margin-top: 15px; line-height: 1.8;">
+                        ❌ NO considera el costo de capital<br><br>
+                        ❌ Puede ser positiva mientras destruyes valor<br><br>
+                        ❌ Ignora el costo de oportunidad<br><br>
+                        ❌ Métrica incompleta
+                    </p>
+                </div>
+                <div class="metric-card good-metric">
+                    <div class="icon">💰</div>
+                    <h3>EVA (Economic Value Added)</h3>
+                    <p style="font-size: 1.2em; margin-top: 15px; line-height: 1.8;">
+                        ✅ Considera el costo total de capital<br><br>
+                        ✅ Muestra la creación REAL de valor<br><br>
+                        ✅ Incluye el costo de oportunidad<br><br>
+                        ✅ Métrica completa y precisa
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Fórmulas Interactivas -->
+        <div class="slide">
+            <h2>📐 Las Fórmulas Clave</h2>
+
+            <div class="interactive-toggle" onclick="toggleContent('formula1')">
+                <div class="toggle-header">
+                    <span>🔴 Utilidad Neta (Métrica Tradicional)</span>
+                    <span class="toggle-icon" id="icon-formula1">▼</span>
+                </div>
+                <div class="toggle-content" id="formula1">
+                    <div class="formula-box" style="background: linear-gradient(135deg, #4a4a4a 0%, #2d2d2d 100%); color: #e0e0e0; border-left-color: #666;">
+                        Utilidad Neta = Ingresos - Costos - Impuestos
+                    </div>
+                    <div class="info-card">
+                        <h4>⚠️ Limitación Principal:</h4>
+                        <p>Esta fórmula NO resta el costo del capital invertido. Solo muestra si hay ganancia contable, pero no si se está creando valor económico real.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interactive-toggle" onclick="toggleContent('formula2')">
+                <div class="toggle-header">
+                    <span>🟠 EVA - Fórmula Principal</span>
+                    <span class="toggle-icon" id="icon-formula2">▼</span>
+                </div>
+                <div class="toggle-content" id="formula2">
+                    <div class="formula-box" style="font-size: 1.6em;">
+                        EVA = NOPAT - (Capital Invertido × WACC)
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>NOPAT</h4>
+                            <p>Net Operating Profit After Taxes<br><strong>Utilidad operativa después de impuestos</strong></p>
+                        </div>
+                        <div class="info-card">
+                            <h4>Capital Invertido</h4>
+                            <p>Total de recursos (deuda + equity) invertidos en el negocio</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>WACC</h4>
+                            <p>Weighted Average Cost of Capital<br><strong>Costo promedio ponderado del capital</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interactive-toggle" onclick="toggleContent('formula3')">
+                <div class="toggle-header">
+                    <span>🟠 EVA - Fórmula Alternativa (Más Intuitiva)</span>
+                    <span class="toggle-icon" id="icon-formula3">▼</span>
+                </div>
+                <div class="toggle-content" id="formula3">
+                    <div class="formula-box" style="font-size: 1.7em;">
+                        EVA = (ROIC - WACC) × Capital Invertido
+                    </div>
+                    <div class="info-card">
+                        <h4>💡 Esta fórmula es más intuitiva porque muestra claramente:</h4>
+                        <p style="font-size: 1.1em; line-height: 1.8; margin-top: 15px;">
+                            <strong>ROIC</strong> = Return on Invested Capital (Retorno sobre capital invertido)<br><br>
+                            Si <strong style="color: #4ade80;">ROIC > WACC</strong> → El spread es positivo → <strong>Se crea valor</strong> ✅<br><br>
+                            Si <strong style="color: #f87171;">ROIC < WACC</strong> → El spread es negativo → <strong>Se destruye valor</strong> ❌
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                🎯 Regla de Oro: Si ROIC > WACC → Se crea valor<br>
+                Si ROIC < WACC → Se destruye valor
+            </div>
+        </div>
+
+        <!-- Slide 4: Ejemplo Práctico Interactivo -->
+        <div class="slide">
+            <h2>💡 Ejemplo: La Trampa de la Utilidad Positiva</h2>
+
+            <div class="example-scenario">
+                <div class="scenario-title">🏢 Empresa XYZ - Año 2024</div>
+
+                <div class="calculation-step">
+                    <strong style="color: #ff8c00; font-size: 1.2em;">📊 Datos Financieros:</strong><br><br>
+                    • Utilidad Neta (NOPAT): <strong>$10,000,000</strong><br>
+                    • Capital Invertido: <strong>$100,000,000</strong><br>
+                    • WACC (Costo de Capital): <strong>12%</strong><br>
+                    • ROIC: <strong>10%</strong>
+                </div>
+
+                <div class="interactive-toggle" onclick="toggleContent('analisis1')" style="background: linear-gradient(135deg, #4a4a4a 0%, #2d2d2d 100%);">
+                    <div class="toggle-header">
+                        <span>📈 Análisis Tradicional (Utilidad Neta)</span>
+                        <span class="toggle-icon" id="icon-analisis1">▼</span>
+                    </div>
+                    <div class="toggle-content" id="analisis1">
+                        <div class="calculation-step">
+                            <strong>Resultado:</strong><br>
+                            Utilidad Neta = <span class="result-positive">$10,000,000 ✓</span><br><br>
+                            <em style="font-size: 1.2em;">¡La empresa es rentable! 🎉</em><br><br>
+                            <div style="background: rgba(74, 222, 128, 0.2); padding: 15px; border-radius: 10px; margin-top: 10px;">
+                                Los accionistas ven: "Ganamos $10 millones"<br>
+                                La junta directiva celebra los resultados positivos
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-toggle" onclick="toggleContent('analisis2')" style="background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%); color: white; margin-top: 20px;">
+                    <div class="toggle-header">
+                        <span>🔍 Análisis Real con EVA</span>
+                        <span class="toggle-icon" id="icon-analisis2">▼</span>
+                    </div>
+                    <div class="toggle-content" id="analisis2">
+                        <div class="calculation-step">
+                            <strong style="color: #ff8c00;">Paso 1: Calcular el Costo de Capital</strong><br>
+                            Costo de Capital = Capital Invertido × WACC<br>
+                            Costo de Capital = $100,000,000 × 12%<br>
+                            Costo de Capital = <strong style="color: #ffa500;">$12,000,000</strong>
+                        </div>
+
+                        <div class="calculation-step">
+                            <strong style="color: #ff8c00;">Paso 2: Calcular EVA</strong><br>
+                            EVA = NOPAT - Costo de Capital<br>
+                            EVA = $10,000,000 - $12,000,000<br>
+                            EVA = <span class="result-negative">-$2,000,000 ✗</span>
+                        </div>
+
+                        <div class="calculation-step">
+                            <strong style="color: #ff8c00;">Paso 3: Interpretación</strong><br><br>
+                            <div style="background: rgba(248, 113, 113, 0.2); padding: 20px; border-radius: 10px; border-left: 5px solid #f87171;">
+                                <strong style="font-size: 1.3em;">¡La empresa está DESTRUYENDO valor! 📉</strong><br><br>
+                                Aunque hay $10M de utilidad, el costo de oportunidad del capital es $12M.<br><br>
+                                Los inversionistas podrían obtener mejores retornos invirtiendo ese capital en otro lugar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box" style="margin-top: 25px;">
+                    ⚠️ Utilidad Positiva ($10M) pero EVA Negativo (-$2M) = Destrucción de Valor
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Comparación Visual Mejorada -->
+        <div class="slide">
+            <h2>📊 Visualización: El Problema Revelado</h2>
+
+            <div class="interactive-chart">
+                <h3 style="text-align: center; color: #ff8c00; margin-bottom: 30px; font-size: 1.8em;">Empresa XYZ - Análisis Comparativo</h3>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 200px; background: linear-gradient(to top, #4ade80, #22c55e);">
+                        <div class="bar-value" style="color: #4ade80;">$10M</div>
+                        <div class="bar-label">Utilidad Neta<br>😊 Positiva</div>
+                    </div>
+                    <div class="bar" style="height: 240px; background: linear-gradient(to top, #ff6b00, #ff8c00, #ffa500);">
+                        <div class="bar-value">$12M</div>
+                        <div class="bar-label">Costo de<br>Capital (WACC)</div>
+                    </div>
+                    <div class="bar" style="height: 40px; background: linear-gradient(to top, #f87171, #ef4444);">
+                        <div class="bar-value" style="color: #f87171;">-$2M</div>
+                        <div class="bar-label">EVA<br>😰 Negativo</div>
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%); padding: 25px; border-radius: 15px; margin-top: 30px; border-left: 5px solid #ff6b00;">
+                    <h4 style="color: #ff8c00; margin-bottom: 15px; font-size: 1.3em;">💡 Interpretación Visual:</h4>
+                    <p style="color: #e0e0e0; line-height: 1.8; font-size: 1.1em;">
+                        La barra naranja (Costo de Capital) es <strong>MÁS ALTA</strong> que la barra verde (Utilidad Neta).<br><br>
+                        Esto significa que los $10M de utilidad <strong>NO son suficientes</strong> para cubrir el costo de $12M que representa el capital invertido.<br><br>
+                        El EVA negativo de -$2M es la diferencia que muestra la <strong>destrucción de valor</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: ROIC vs WACC Interactivo -->
+        <div class="slide">
+            <h2>⚖️ La Relación Crítica: ROIC vs WACC</h2>
+
+            <div class="visual-flow">
+                <div class="flow-item" style="background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: white; border-color: #4ade80;">
+                    <h3 style="color: white;">ROIC > WACC</h3>
+                    <div style="font-size: 3em;">✅</div>
+                    <p style="font-size: 1.2em;"><strong>Creación de Valor</strong></p>
+                    <div class="progress-bar" style="margin-top: 15px;">
+                        <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, #22c55e, #4ade80);">
+                            Óptimo
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item" style="background: linear-gradient(135deg, #ffa500 0%, #ff8c00 100%); color: white; border-color: #ffa500;">
+                    <h3 style="color: white;">ROIC = WACC</h3>
+                    <div style="font-size: 3em;">⚖️</div>
+                    <p style="font-size: 1.2em;"><strong>Punto de Equilibrio</strong></p>
+                    <div class="progress-bar" style="margin-top: 15px;">
+                        <div class="progress-fill" style="width: 50%; background: linear-gradient(90deg, #ff8c00, #ffa500);">
+                            Neutro
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item" style="background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); color: white; border-color: #f87171;">
+                    <h3 style="color: white;">ROIC < WACC</h3>
+                    <div style="font-size: 3em;">❌</div>
+                    <p style="font-size: 1.2em;"><strong>Destrucción de Valor</strong></p>
+                    <div class="progress-bar" style="margin-top: 15px;">
+                        <div class="progress-fill" style="width: 20%; background: linear-gradient(90deg, #ef4444, #f87171);">
+                            Crítico
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="comparison-table" style="margin-top: 40px;">
+                <thead>
+                    <tr>
+                        <th>Escenario</th>
+                        <th>ROIC</th>
+                        <th>WACC</th>
+                        <th>Spread</th>
+                        <th>EVA</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Empresa A</strong></td>
+                        <td>15%</td>
+                        <td>10%</td>
+                        <td style="color: #4ade80; font-weight: bold;">+5%</td>
+                        <td style="color: #4ade80; font-weight: bold;">+$5M</td>
+                        <td>✅ Crea Valor</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Empresa B</strong></td>
+                        <td>10%</td>
+                        <td>10%</td>
+                        <td style="color: #ffa500; font-weight: bold;">0%</td>
+                        <td style="color: #ffa500; font-weight: bold;">$0</td>
+                        <td>⚖️ Equilibrio</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Empresa C</strong></td>
+                        <td>8%</td>
+                        <td>12%</td>
+                        <td style="color: #f87171; font-weight: bold;">-4%</td>
+                        <td style="color: #f87171; font-weight: bold;">-$4M</td>
+                        <td>❌ Destruye Valor</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 7: Puntos Clave -->
+        <div class="slide">
+            <h2>🎯 Puntos Clave del EVA</h2>
+
+            <div class="key-points">
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">💰</div>
+                    <h3>Costo Real</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Incluye el costo de TODO el capital (deuda + equity)</p>
+                </div>
+
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">🎯</div>
+                    <h3>Valor Real</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Mide la creación de valor económico real, no solo contable</p>
+                </div>
+
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">📈</div>
+                    <h3>Decisiones</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Guía mejores decisiones de inversión y asignación de capital</p>
+                </div>
+
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">🔍</div>
+                    <h3>Transparencia</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Revela la verdadera performance financiera</p>
+                </div>
+
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">⚡</div>
+                    <h3>Acción</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Impulsa acciones concretas para maximizar valor</p>
+                </div>
+
+                <div class="key-point">
+                    <div style="font-size: 2.5em;">🤝</div>
+                    <h3>Alineación</h3>
+                    <p style="margin-top: 15px; line-height: 1.6;">Alinea intereses de gestión y accionistas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Caso Comparativo Detallado -->
+        <div class="slide">
+            <h2>🔬 Caso Comparativo: Dos Empresas</h2>
+
+            <div class="comparison-container">
+                <div style="background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); padding: 35px; border-radius: 25px; border: 2px solid #4ade80;">
+                    <h3 style="color: #4ade80; text-align: center; font-size: 1.8em; margin-bottom: 25px;">Empresa ALFA</h3>
+                    <div class="calculation-step">
+                        <strong style="color: #ff8c00;">Datos:</strong><br><br>
+                        • Utilidad Neta: <strong>$15M</strong><br>
+                        • Capital: <strong>$150M</strong><br>
+                        • ROIC: <strong>10%</strong><br>
+                        • WACC: <strong>8%</strong>
+                    </div>
+                    <div class="calculation-step">
+                        <strong style="color: #ff8c00;">Cálculo EVA:</strong><br><br>
+                        EVA = (ROIC - WACC) × Capital<br>
+                        EVA = (10% - 8%) × $150M<br>
+                        EVA = 2% × $150M<br>
+                        EVA = <span class="result-positive">+$3M ✅</span>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px;">
+                        <strong style="font-size: 1.3em;">✅ CREA VALOR</strong><br>
+                        <p style="margin-top: 10px; font-size: 0.95em;">Spread positivo de 2%</p>
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); padding: 35px; border-radius: 25px; border: 2px solid #f87171;">
+                    <h3 style="color: #f87171; text-align: center; font-size: 1.8em; margin-bottom: 25px;">Empresa BETA</h3>
+                    <div class="calculation-step">
+                        <strong style="color: #ff8c00;">Datos:</strong><br><br>
+                        • Utilidad Neta: <strong>$20M</strong><br>
+                        • Capital: <strong>$200M</strong><br>
+                        • ROIC: <strong>10%</strong><br>
+                        • WACC: <strong>12%</strong>
+                    </div>
+                    <div class="calculation-step">
+                        <strong style="color: #ff8c00;">Cálculo EVA:</strong><br><br>
+                        EVA = (ROIC - WACC) × Capital<br>
+                        EVA = (10% - 12%) × $200M<br>
+                        EVA = -2% × $200M<br>
+                        EVA = <span class="result-negative">-$4M ❌</span>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px;">
+                        <strong style="font-size: 1.3em;">❌ DESTRUYE VALOR</strong><br>
+                        <p style="margin-top: 10px; font-size: 0.95em;">Spread negativo de -2%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                🤯 BETA tiene MAYOR utilidad neta ($20M vs $15M) pero DESTRUYE más valor que ALFA<br><br>
+                <span style="font-size: 0.9em;">Esto demuestra por qué la utilidad neta es una métrica engañosa</span>
+            </div>
+        </div>
+
+        <!-- Slide 9: Conclusión -->
+        <div class="slide">
+            <h2>🏆 Conclusión: EVA como Maximizador de Valor</h2>
+
+            <div class="conclusion-box">
+                <div style="font-size: 3em; margin-bottom: 20px;">💎</div>
+                <p><strong>El EVA es el ÚNICO indicador que muestra si realmente estás creando valor para los accionistas</strong></p>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); padding: 40px; border-radius: 25px; margin: 30px 0; border: 2px solid #ff6b00;">
+                <h3 style="color: #ff8c00; margin-bottom: 30px; font-size: 1.8em;">Por qué el EVA es Superior:</h3>
+
+                <div class="calculation-step">
+                    <strong style="color: #ff8c00; font-size: 1.2em;">1. Considera el Costo Total de Capital</strong><br><br>
+                    <p style="color: #e0e0e0;">No basta con ser rentable, hay que superar el costo de oportunidad del capital invertido</p>
+                </div>
+
+                <div class="calculation-step">
+                    <strong style="color: #ff8c00; font-size: 1.2em;">2. Previene Decisiones Destructivas</strong><br><br>
+                    <p style="color: #e0e0e0;">Evita inversiones que parecen rentables en papel pero destruyen valor económico real</p>
+                </div>
+
+                <div class="calculation-step">
+                    <strong style="color: #ff8c00; font-size: 1.2em;">3. Alinea Incentivos</strong><br><br>
+                    <p style="color: #e0e0e0;">Conecta la compensación gerencial con la creación real de valor para accionistas</p>
+                </div>
+
+                <div class="calculation-step">
+                    <strong style="color: #ff8c00; font-size: 1.2em;">4. Guía la Estrategia</strong><br><br>
+                    <p style="color: #e0e0e0;">Identifica dónde enfocar recursos para maximizar la creación de valor</p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                🎯 Recuerda: Utilidad Positiva ≠ Creación de Valor<br><br>
+                Solo cuando ROIC > WACC se crea valor económico real
+            </div>
+        </div>
+
+        <!-- Slide 10: Call to Action -->
+        <div class="slide" style="text-align: center;">
+            <h2>🚀 Implementa EVA en tu Empresa</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin: 40px 0;">
+                <div style="background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%); color: white; padding: 40px; border-radius: 25px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size: 3em;">1️⃣</div>
+                    <h3 style="color: white; margin: 20px 0;">Calcula tu WACC</h3>
+                    <p style="font-size: 1.1em;">Conoce tu costo de capital promedio ponderado</p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%); color: white; padding: 40px; border-radius: 25px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size: 3em;">2️⃣</div>
+                    <h3 style="color: white; margin: 20px 0;">Mide tu ROIC</h3>
+                    <p style="font-size: 1.1em;">Evalúa tu retorno real sobre capital invertido</p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%); color: white; padding: 40px; border-radius: 25px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size: 3em;">3️⃣</div>
+                    <h3 style="color: white; margin: 20px 0;">Calcula EVA</h3>
+                    <p style="font-size: 1.1em;">Descubre si realmente creas valor económico</p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%); color: white; padding: 40px; border-radius: 25px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size: 3em;">4️⃣</div>
+                    <h3 style="color: white; margin: 20px 0;">Actúa</h3>
+                    <p style="font-size: 1.1em;">Implementa estrategias para maximizar tu EVA</p>
+                </div>
+            </div>
+
+            <div class="conclusion-box" style="margin-top: 40px;">
+                <div style="font-size: 2.5em; margin-bottom: 15px;">💡</div>
+                <h3 style="color: white;">El EVA transforma la forma en que entiendes y gestionas el valor</h3>
+                <p style="margin-top: 20px; font-size: 1em; line-height: 1.6;">
+                    No te conformes con utilidades positivas.<br>
+                    <strong style="font-size: 1.2em;">Exige creación de valor real.</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleContent(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            content.classList.toggle('active');
+            icon.classList.toggle('active');
+
+            if (content.classList.contains('active')) {
+                icon.textContent = '▲';
+            } else {
+                icon.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>
