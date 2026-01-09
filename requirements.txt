@@ -1,0 +1,26 @@
+# Microsoft Azure Authentication
+azure-identity==1.15.0
+msal==1.26.0
+
+# Azure Storage for OneLake
+azure-storage-file-datalake==12.14.0
+azure-storage-blob==12.19.0
+
+# Microsoft Fabric / Power BI
+semantic-link-sempy==0.6.1
+powerbiclient==3.1.1
+
+# Data handling
+pandas==2.1.4
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# Environment variables
+python-dotenv==1.0.0
+
+# HTTP requests
+requests==2.31.0
+
+# Logging and utilities
+colorama==0.4.6
+tqdm==4.66.1
