@@ -1,0 +1,13 @@
+# Microsoft Fabric MCP Server Dependencies
+
+# MCP SDK
+mcp>=1.0.0
+
+# Azure AD Authentication
+msal>=1.24.0
+
+# HTTP Client
+aiohttp>=3.9.0
+
+# Utilities
+python-dotenv>=1.0.0
