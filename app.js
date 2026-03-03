@@ -41,19 +41,31 @@ const App = {
 
         } catch (error) {
             console.error('Error loading data:', error);
-            this.updateStatus('Error de conexión. Usando datos de demostración...', 80);
-
-            // Generate demo data as fallback
-            this.rawData = ODataService._generateDemoData('2024-01-01', new Date().toISOString().split('T')[0]);
-            this.processAndRender();
 
             const statusEl = document.getElementById('connection-status');
-            statusEl.className = 'connection-status connected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>Demo</span>';
+            statusEl.className = 'connection-status';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>Error</span>';
 
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 800);
+            // Show error in UI
+            this.updateStatus('Error de conexión', 100);
+            document.getElementById('loading-overlay').innerHTML = `
+                <div class="loading-content">
+                    <div style="font-size:3rem;margin-bottom:15px">&#9888;</div>
+                    <h2>Error de Conexión con Acumatica</h2>
+                    <p style="max-width:500px;margin:15px auto;line-height:1.7">${error.message}</p>
+                    <div style="background:rgba(255,255,255,0.1);padding:20px;border-radius:12px;margin:20px auto;max-width:500px;text-align:left">
+                        <p style="font-weight:bold;margin-bottom:10px">Pasos para conectar con datos reales:</p>
+                        <ol style="padding-left:20px;line-height:2">
+                            <li>Abrir una terminal en la carpeta del proyecto</li>
+                            <li>Ejecutar: <code style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px">node server.js</code></li>
+                            <li>Abrir <code style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px">http://localhost:3000</code> en el navegador</li>
+                        </ol>
+                    </div>
+                    <button onclick="location.reload()" style="padding:12px 30px;border:none;background:#ed8936;color:white;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600">
+                        Reintentar
+                    </button>
+                </div>
+            `;
         }
     },
 
