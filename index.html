@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAVILA IMPORTACIONES SAS - Análisis Financiero Integral</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <h2>Conectando con Acumatica OData...</h2>
+                <p id="loading-status">Iniciando conexión...</p>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>DAVILA IMPORTACIONES SAS</h1>
+                <p class="subtitle">Sistema de Análisis Económico-Financiero Integral</p>
+            </div>
+            <div class="header-right">
+                <div class="year-selector">
+                    <label for="year-select">Ejercicio:</label>
+                    <select id="year-select" onchange="App.changeYear(this.value)">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                    </select>
+                </div>
+                <div class="connection-status" id="connection-status">
+                    <span class="status-dot"></span>
+                    <span>Desconectado</span>
+                </div>
+                <button class="btn btn-primary" onclick="App.refreshData()">Actualizar Datos</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="situacion" onclick="App.switchTab('situacion')">
+                Estado de Situación Patrimonial
+            </button>
+            <button class="nav-tab" data-tab="resultados" onclick="App.switchTab('resultados')">
+                Estado de Resultados
+            </button>
+            <button class="nav-tab" data-tab="analisis" onclick="App.switchTab('analisis')">
+                Análisis Económico-Financiero
+            </button>
+            <button class="nav-tab" data-tab="dashboard" onclick="App.switchTab('dashboard')">
+                Dashboard
+            </button>
+            <button class="nav-tab" data-tab="ia" onclick="App.switchTab('ia')">
+                Análisis IA
+            </button>
+        </nav>
+
+        <!-- Tab: Estado de Situación Patrimonial -->
+        <div id="tab-situacion" class="tab-content active">
+            <div class="statement-container">
+                <h2 class="statement-title">Estado de Situación Patrimonial</h2>
+                <p class="statement-subtitle" id="balance-date">Al 31 de Diciembre de 2026</p>
+                <div class="balance-sheet-grid">
+                    <div class="balance-col">
+                        <h3 class="section-header activo-header">ACTIVO</h3>
+                        <div id="activo-section"></div>
+                        <div class="total-row grand-total" id="total-activo-row">
+                            <span>TOTAL ACTIVO</span>
+                            <span id="total-activo">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="balance-col">
+                        <h3 class="section-header pasivo-header">PASIVO</h3>
+                        <div id="pasivo-section"></div>
+                        <div class="total-row" id="total-pasivo-row">
+                            <span>TOTAL PASIVO</span>
+                            <span id="total-pasivo">$0.00</span>
+                        </div>
+                        <h3 class="section-header patrimonio-header">PATRIMONIO NETO</h3>
+                        <div id="patrimonio-section"></div>
+                        <div class="total-row" id="total-patrimonio-row">
+                            <span>TOTAL PATRIMONIO NETO</span>
+                            <span id="total-patrimonio">$0.00</span>
+                        </div>
+                        <div class="total-row grand-total" id="total-pasivo-patrimonio-row">
+                            <span>TOTAL PASIVO + PATRIMONIO</span>
+                            <span id="total-pasivo-patrimonio">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="balance-check" id="balance-check"></div>
+                <div class="accounts-detail">
+                    <h3>Detalle de Clasificación de Cuentas</h3>
+                    <p class="detail-note">Clasificación automática según normas contables ecuatorianas (NIC/NIIF)</p>
+                    <div id="classification-detail"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Estado de Resultados -->
+        <div id="tab-resultados" class="tab-content">
+            <div class="statement-container">
+                <h2 class="statement-title">Estado de Resultados</h2>
+                <p class="statement-subtitle" id="income-period">Período: Enero - Diciembre 2026</p>
+                <div class="income-statement" id="income-statement"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Análisis Económico-Financiero -->
+        <div id="tab-analisis" class="tab-content">
+            <!-- DuPont Analysis -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">A) Análisis DuPont - 5 Componentes</h2>
+                <p class="analysis-desc">Descomposición del Return on Equity (ROE) en sus factores fundamentales</p>
+                <div class="dupont-tree" id="dupont-tree"></div>
+                <div class="dupont-explanation" id="dupont-explanation"></div>
+            </div>
+
+            <!-- Altman Z-Score -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">B) Índice Z de Altman</h2>
+                <p class="analysis-desc">Predictor de probabilidad de quiebra empresarial</p>
+                <div class="altman-container" id="altman-container"></div>
+            </div>
+
+            <!-- Break-Even -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">C) Punto de Equilibrio Económico y Financiero</h2>
+                <div class="breakeven-container" id="breakeven-container"></div>
+            </div>
+
+            <!-- EVA -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">D) EVA - Valor Económico Agregado</h2>
+                <p class="analysis-desc">Determina si la empresa genera valor por encima del costo de capital</p>
+                <div class="eva-container" id="eva-container"></div>
+            </div>
+
+            <!-- Cash Conversion Cycle -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">F) Ciclo de Conversión de Efectivo</h2>
+                <p class="analysis-desc">Tiempo que tarda la empresa en convertir sus inversiones en flujo de caja</p>
+                <div class="ccc-container" id="ccc-container"></div>
+            </div>
+
+            <!-- Additional Indicators -->
+            <div class="analysis-card">
+                <h2 class="analysis-title">Indicadores Adicionales</h2>
+                <div class="indicators-grid" id="additional-indicators"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Dashboard -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="chart-card full-width">
+                    <h3>Ingresos vs Egresos de Efectivo (Mensual)</h3>
+                    <canvas id="chart-cash-flow"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>EVA - Evolución Mensual</h3>
+                    <canvas id="chart-eva"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Análisis DuPont - Componentes</h3>
+                    <canvas id="chart-dupont"></canvas>
+                </div>
+                <div class="chart-card full-width">
+                    <h3>Waterfall - Ciclo de Conversión de Efectivo</h3>
+                    <canvas id="chart-ccc-waterfall"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Estructura del Activo</h3>
+                    <canvas id="chart-asset-structure"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Estructura de Financiamiento</h3>
+                    <canvas id="chart-financing"></canvas>
+                </div>
+                <div class="chart-card full-width">
+                    <h3>Evolución de Indicadores Clave</h3>
+                    <canvas id="chart-kpi-evolution"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Punto de Equilibrio</h3>
+                    <canvas id="chart-breakeven"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Índice Z de Altman - Evolución</h3>
+                    <canvas id="chart-altman"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Análisis IA -->
+        <div id="tab-ia" class="tab-content">
+            <div class="ia-container">
+                <h2 class="analysis-title">Análisis Inteligente Integral</h2>
+                <p class="analysis-desc">Evaluación automatizada de la situación económica, patrimonial, financiera, de liquidez y solvencia</p>
+                <div id="ia-analysis"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="odata-service.js"></script>
+    <script src="account-classifier.js"></script>
+    <script src="financial-statements.js"></script>
+    <script src="financial-analysis.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="ia-analysis.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
