@@ -389,6 +389,32 @@ const AccountClassifier = {
         let creditField = find('CreditAmount', 'CreditAmt', 'CreditTotal', 'Credit', 'CrAmt',
                                'CuryCreditAmt', 'CuryCreditTotal', 'CreditAmt', 'Haber');
 
+        // If a debit/credit field is null in the sample, look for variant fields
+        // with actual values (handles GLTurn_debit=null vs GLTurn_debit_1="54.95")
+        const verifyAmountField = (field) => {
+            if (!field) return field;
+            const val = sample[field];
+            if (val != null && val !== '') return field;
+            const fieldLower = field.toLowerCase();
+            const alternatives = keys.filter(k => {
+                if (k === field) return false;
+                const kl = k.toLowerCase();
+                return (kl.startsWith(fieldLower) || fieldLower.startsWith(kl))
+                    && sample[k] != null && sample[k] !== '';
+            });
+            const numericAlt = alternatives.find(a => {
+                const v = sample[a];
+                return typeof v === 'number' || (typeof v === 'string' && !isNaN(parseFloat(v)));
+            });
+            if (numericAlt) {
+                console.log(`  ℹ Campo "${field}" es null, usando variante "${numericAlt}" = ${sample[numericAlt]}`);
+                return numericAlt;
+            }
+            return field;
+        };
+        debitField = verifyAmountField(debitField);
+        creditField = verifyAmountField(creditField);
+
         // If debit/credit not found by name, search numeric fields for debit/credit patterns
         if (!debitField || !creditField) {
             for (const nf of numericFields) {
@@ -425,13 +451,24 @@ const AccountClassifier = {
             }
         }
 
+        // Detect accountType and validate it is an actual accounting type, not a journal type
+        let accountTypeField = find('AccountType', 'AcctType', 'Tipo');
+        if (accountTypeField) {
+            const typeVal = String(sample[accountTypeField] || '').toLowerCase();
+            const validTypes = ['asset', 'liability', 'equity', 'revenue', 'expense', 'income'];
+            if (!validTypes.some(t => typeVal.includes(t))) {
+                console.log(`  ℹ Campo "${accountTypeField}" = "${sample[accountTypeField]}" no es un tipo contable válido, ignorando`);
+                accountTypeField = null;
+            }
+        }
+
         this._fieldMap = {
             accountCD:      find('AccountCD', 'Account', 'AccountID', 'AccountCode', 'AcctCD', 'Acct', 'Cuenta'),
-            accountName:    find('AccountDescription', 'AccountName', 'AcctName', 'AccountDesc', 'Descripcion'),
-            accountType:    find('AccountType', 'AcctType', 'Type', 'Tipo'),
+            accountName:    find('Description_2', 'AccountDescription', 'AccountName', 'AcctName', 'AccountDesc', 'Descripcion'),
+            accountType:    accountTypeField,
             accountSubtype: find('AccountSubtype', 'Subtype', 'SubType', 'AcctSubtype'),
             date:           find('TranDate', 'TransactionDate', 'Date', 'Fecha', 'TranPeriod', 'FinPeriodID'),
-            description:    find('Description', 'TranDesc', 'Memo', 'LineDescription', 'Detalle'),
+            description:    find('TransactionDescription', 'Description', 'TranDesc', 'Memo', 'LineDescription', 'Detalle'),
             debit:          debitField,
             credit:         creditField,
         };
