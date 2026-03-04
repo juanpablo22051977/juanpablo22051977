@@ -28,22 +28,23 @@ const ODataService = {
         updateStatus('Conectando con Acumatica vía proxy...', 10);
 
         // Endpoints to try in order (via proxy, so no CORS issues)
+        // Uses actual field name TransactionDate from the OData Generic Inquiry
         const endpoints = [
             {
-                url: `${this.proxyBaseUrl}/JPR-JournalTransactions/JPRJournalTransactions_WithParameters(StartDate='${startDate}',EndDate='${endDate}')`,
-                desc: 'función con parámetros OData'
+                url: `${this.proxyBaseUrl}/JPR-JournalTransactions?$filter=TransactionDate ge datetimeoffset'${startDate}T00:00:00Z' and TransactionDate le datetimeoffset'${endDate}T23:59:59Z'`,
+                desc: 'filtro OData v4 (datetimeoffset)'
             },
             {
-                url: `${this.proxyBaseUrl}/JPR-JournalTransactions/JPRJournalTransactions_WithParameters?StartDate=${startDate}&EndDate=${endDate}`,
-                desc: 'función con query params'
+                url: `${this.proxyBaseUrl}/JPR-JournalTransactions?$filter=TransactionDate ge ${startDate}T00:00:00Z and TransactionDate le ${endDate}T23:59:59Z`,
+                desc: 'filtro OData v4 (ISO directo)'
             },
             {
-                url: `${this.proxyBaseUrl}/JPR-JournalTransactions?$filter=TranDate ge ${startDate}T00:00:00Z and TranDate le ${endDate}T23:59:59Z`,
-                desc: 'filtro OData por fecha'
+                url: `${this.proxyBaseUrl}/JPR-JournalTransactions?$filter=TransactionDate ge datetime'${startDate}T00:00:00' and TransactionDate le datetime'${endDate}T23:59:59'`,
+                desc: 'filtro OData v3 (datetime)'
             },
             {
                 url: `${this.proxyBaseUrl}/JPR-JournalTransactions`,
-                desc: 'endpoint base (todos los datos)'
+                desc: 'endpoint base (todos los datos, filtro local)'
             }
         ];
 
