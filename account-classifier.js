@@ -327,66 +327,109 @@ const AccountClassifier = {
      * Process all transactions and classify accounts
      * Returns organized data for financial statements
      */
-    /**
-     * Safely parse a numeric value from OData response.
-     * OData often returns numbers as strings; this handles both.
-     */
+
+    /** Safely parse a numeric value (handles strings from OData) */
     _num(value) {
-        if (value == null) return null;
-        const n = typeof value === 'string' ? parseFloat(value) : Number(value);
-        return isNaN(n) ? null : n;
+        if (value == null) return 0;
+        const n = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : Number(value);
+        return isNaN(n) ? 0 : n;
     },
 
     /**
-     * Extract a numeric field from a transaction, trying multiple field names.
-     * Returns 0 if none found.
+     * Auto-detect field mapping from the first OData record.
+     * Uses case-insensitive substring matching to find the right fields.
      */
-    _getNum(txn, ...fieldNames) {
-        for (const name of fieldNames) {
-            const v = this._num(txn[name]);
-            if (v !== null) return v;
+    _fieldMap: null,
+
+    _detectFields(sample) {
+        const keys = Object.keys(sample);
+        const lower = keys.map(k => k.toLowerCase());
+
+        const find = (...patterns) => {
+            for (const p of patterns) {
+                const idx = lower.findIndex(l => l === p.toLowerCase());
+                if (idx !== -1) return keys[idx];
+            }
+            // Partial/substring match as fallback
+            for (const p of patterns) {
+                const pl = p.toLowerCase();
+                const idx = lower.findIndex(l => l.includes(pl) || pl.includes(l));
+                if (idx !== -1) return keys[idx];
+            }
+            return null;
+        };
+
+        this._fieldMap = {
+            accountCD:   find('AccountCD', 'Account', 'AccountID', 'AccountCode', 'AcctCD', 'Acct'),
+            accountName: find('AccountDescription', 'AccountName', 'AcctName', 'AccountDesc'),
+            accountType: find('AccountType', 'AcctType', 'Type'),
+            accountSubtype: find('AccountSubtype', 'Subtype', 'SubType', 'AcctSubtype'),
+            date:        find('TranDate', 'TransactionDate', 'Date', 'TranPeriod', 'FinPeriodID'),
+            description: find('Description', 'TranDesc', 'Memo', 'LineDescription'),
+            debit:       find('DebitAmount', 'Debit', 'DebitTotal', 'DebitAmt', 'DrAmt',
+                              'CuryDebitAmt', 'CuryDebitTotal'),
+            credit:      find('CreditAmount', 'Credit', 'CreditTotal', 'CreditAmt', 'CrAmt',
+                              'CuryCreditAmt', 'CuryCreditTotal'),
+            balance:     find('Amount', 'Balance', 'EndBalance', 'EndBal', 'BegBalance',
+                              'CuryEndBalance', 'SignedAmount', 'TranAmount'),
+        };
+
+        // Log the mapping for debugging
+        console.log('=== MAPEO DE CAMPOS DETECTADO ===');
+        console.log('Campos en OData:', keys);
+        for (const [role, field] of Object.entries(this._fieldMap)) {
+            const val = field ? sample[field] : undefined;
+            console.log(`  ${role}: ${field || '⚠ NO ENCONTRADO'} ${field ? `= ${JSON.stringify(val)} (${typeof val})` : ''}`);
         }
-        return 0;
+
+        // If no debit/credit found, try to find ANY numeric fields and warn
+        if (!this._fieldMap.debit && !this._fieldMap.credit && !this._fieldMap.balance) {
+            console.warn('⚠ No se detectaron campos de monto. Campos numéricos disponibles:');
+            keys.forEach(k => {
+                const v = sample[k];
+                if (v != null && !isNaN(parseFloat(v)) && typeof v !== 'boolean') {
+                    console.warn(`  → ${k} = ${v} (${typeof v})`);
+                }
+            });
+        }
+
+        return this._fieldMap;
     },
 
-    /**
-     * Extract a string field from a transaction, trying multiple field names.
-     */
-    _getStr(txn, ...fieldNames) {
-        for (const name of fieldNames) {
-            if (txn[name] != null && txn[name] !== '') return String(txn[name]);
-        }
-        return '';
+    /** Get a field value from a transaction using the auto-detected mapping */
+    _get(txn, role) {
+        const fieldName = this._fieldMap[role];
+        return fieldName ? txn[fieldName] : undefined;
     },
 
     processTransactions(transactions, year, month) {
         const accountBalances = {};
         const monthlyData = {};
+        this._fieldMap = null; // reset
 
-        // Log first record fields for debugging
-        if (transactions.length > 0) {
-            const sample = transactions[0];
-            console.log('[Classifier] Campos OData detectados:', Object.keys(sample));
-            console.log('[Classifier] Primer registro (muestra):', JSON.stringify(sample, null, 2));
-
-            // Log all unique field names across first 5 records
-            const allFields = new Set();
-            transactions.slice(0, 5).forEach(t => Object.keys(t).forEach(k => allFields.add(k)));
-            console.log('[Classifier] Todos los campos encontrados:', [...allFields]);
+        if (!transactions || transactions.length === 0) {
+            console.warn('[Classifier] No hay transacciones para procesar');
+            return { accountBalances, monthlyData };
         }
 
-        for (const txn of transactions) {
-            // Extract fields with multiple name alternatives (Acumatica OData variations)
-            const acctCD = this._getStr(txn, 'AccountCD', 'Account', 'AccountID', 'AccountCode', 'AcctCD', 'Acct');
-            const acctName = this._getStr(txn, 'AccountDescription', 'AccountName', 'Description', 'AcctName', 'AccountDesc');
-            const acctType = this._getStr(txn, 'AccountType', 'Type', 'AcctType');
-            const acctSubtype = this._getStr(txn, 'AccountSubtype', 'Subtype', 'SubType', 'AcctSubtype');
+        // Auto-detect fields from first record
+        this._detectFields(transactions[0]);
+        console.log(`[Classifier] Procesando ${transactions.length} transacciones...`);
 
-            // Parse date with multiple field name alternatives
-            const rawDate = txn.TranDate || txn.TransactionDate || txn.Date || txn.TranPeriod || txn.FinPeriodID;
+        // Track stats for debugging
+        let processed = 0, skippedDate = 0, nonZero = 0;
+
+        for (const txn of transactions) {
+            const acctCD = String(this._get(txn, 'accountCD') || '');
+            const acctName = String(this._get(txn, 'accountName') || this._get(txn, 'description') || '');
+            const acctType = String(this._get(txn, 'accountType') || '');
+            const acctSubtype = String(this._get(txn, 'accountSubtype') || '');
+
+            // Parse date
+            const rawDate = this._get(txn, 'date');
             const txnDate = new Date(rawDate);
 
-            if (isNaN(txnDate)) continue;
+            if (isNaN(txnDate)) { skippedDate++; continue; }
 
             const txnYear = txnDate.getFullYear();
             const txnMonth = txnDate.getMonth() + 1;
@@ -394,6 +437,7 @@ const AccountClassifier = {
 
             const classification = this.classifyAccount(acctCD, acctName, acctType, acctSubtype);
             const key = acctCD || acctName;
+            if (!key) continue;
 
             if (!accountBalances[key]) {
                 accountBalances[key] = {
@@ -408,17 +452,20 @@ const AccountClassifier = {
                 };
             }
 
-            // Parse numeric values safely (handles strings from OData)
-            const debitAmt = this._getNum(txn, 'DebitAmount', 'Debit', 'DebitTotal', 'DebitAmt', 'DrAmt', 'CuryDebitAmt', 'CuryDebitTotal');
-            const creditAmt = this._getNum(txn, 'CreditAmount', 'Credit', 'CreditTotal', 'CreditAmt', 'CrAmt', 'CuryCreditAmt', 'CuryCreditTotal');
-            const endBalance = this._getNum(txn, 'Amount', 'Balance', 'EndBalance', 'EndBal', 'BegBalance', 'CuryEndBalance', 'SignedAmount', 'TranAmount');
+            // Parse numeric values safely (parseFloat handles strings)
+            const debitAmt = this._num(this._get(txn, 'debit'));
+            const creditAmt = this._num(this._get(txn, 'credit'));
 
-            // Use EndBalance if available, otherwise compute from Debit - Credit
-            const amount = (endBalance !== 0) ? endBalance : (debitAmt - creditAmt);
+            // IMPORTE = Débito - Crédito (siempre calculado, nunca depende de campo "Amount")
+            const amount = debitAmt - creditAmt;
 
-            accountBalances[key].balance = amount; // For balance sheet, take latest
+            if (amount !== 0) nonZero++;
+
+            accountBalances[key].balance += amount;
             accountBalances[key].debit += debitAmt;
             accountBalances[key].credit += creditAmt;
+
+            processed++;
 
             if (!accountBalances[key].monthlyBalances[period]) {
                 accountBalances[key].monthlyBalances[period] = 0;
@@ -446,6 +493,38 @@ const AccountClassifier = {
             else if (sub === 'Gastos Extraordinarios') monthlyData[period].extraordinary += absAmount;
             else if (classification.rubric === 'Ingresos Extraordinarios') monthlyData[period].extraIncome += absAmount;
             else if (sub === 'Impuesto') monthlyData[period].tax += absAmount;
+        }
+
+        // Resumen de diagnóstico
+        const totalAccounts = Object.keys(accountBalances).length;
+        const accountsWithBalance = Object.values(accountBalances).filter(a => a.balance !== 0).length;
+        console.log('=== RESUMEN PROCESAMIENTO ===');
+        console.log(`  Transacciones procesadas: ${processed}`);
+        console.log(`  Transacciones sin fecha válida: ${skippedDate}`);
+        console.log(`  Transacciones con importe ≠ 0: ${nonZero}`);
+        console.log(`  Cuentas únicas: ${totalAccounts}`);
+        console.log(`  Cuentas con saldo ≠ 0: ${accountsWithBalance}`);
+
+        if (nonZero === 0 && processed > 0) {
+            console.error('⚠⚠⚠ TODAS las transacciones tienen importe 0.');
+            console.error('Los campos de débito/crédito probablemente NO se están leyendo.');
+            console.error('Ejecute ODataService.diagnose() en la consola para ver los campos reales.');
+            // Log first 3 raw records for inspection
+            console.error('Primeros 3 registros crudos:');
+            transactions.slice(0, 3).forEach((t, i) => {
+                console.error(`Registro ${i + 1}:`, JSON.stringify(t));
+            });
+        }
+
+        // Log top 5 accounts by absolute balance
+        const topAccounts = Object.values(accountBalances)
+            .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+            .slice(0, 5);
+        if (topAccounts.length > 0) {
+            console.log('  Top 5 cuentas por saldo:');
+            topAccounts.forEach(a => {
+                console.log(`    ${a.accountCD} ${a.accountName}: Saldo=${a.balance.toFixed(2)} D=${a.debit.toFixed(2)} C=${a.credit.toFixed(2)}`);
+            });
         }
 
         return { accountBalances, monthlyData };
