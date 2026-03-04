@@ -22,6 +22,76 @@ const AUTH_HEADER = 'Basic ' + Buffer.from(USERNAME + ':' + PASSWORD).toString('
 // Serve static files (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname)));
 
+// Debug endpoint: fetch 1 raw record and show field names + values
+app.get('/api/debug', (req, res) => {
+    const debugPath = ACUMATICA_BASE + '/JPR-JournalTransactions?$top=3';
+    console.log(`[DEBUG] Fetching ${debugPath}`);
+
+    const options = {
+        hostname: ACUMATICA_HOST, port: 443, path: debugPath, method: 'GET',
+        headers: { 'Authorization': AUTH_HEADER, 'Accept': 'application/json' },
+        rejectUnauthorized: true
+    };
+
+    const proxyReq = https.request(options, (proxyRes) => {
+        let body = '';
+        proxyRes.on('data', chunk => body += chunk);
+        proxyRes.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                const records = data.value || data.d?.results || data.d || [];
+                const arr = Array.isArray(records) ? records : [records];
+
+                if (arr.length === 0) {
+                    res.json({ error: 'No records returned', rawKeys: Object.keys(data) });
+                    return;
+                }
+
+                const sample = arr[0];
+                const fields = Object.entries(sample).map(([k, v]) => ({
+                    field: k,
+                    type: typeof v,
+                    value: v,
+                    isNumeric: v != null && !isNaN(parseFloat(v)) && typeof v !== 'boolean'
+                }));
+
+                console.log('[DEBUG] === CAMPOS ODATA ===');
+                fields.forEach(f => {
+                    console.log(`  ${f.field} (${f.type}) = ${JSON.stringify(f.value)}${f.isNumeric ? ' [NUMERIC]' : ''}`);
+                });
+
+                res.setHeader('Content-Type', 'text/html');
+                res.send(`
+                    <html><head><title>Debug OData</title>
+                    <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:#e0e0e0}
+                    table{border-collapse:collapse;width:100%}td,th{border:1px solid #444;padding:8px;text-align:left}
+                    th{background:#16213e;color:#0f0}.num{color:#0f0;font-weight:bold}.str{color:#ff9800}</style></head>
+                    <body>
+                    <h2>OData Debug - Campos de JPR-JournalTransactions</h2>
+                    <p>Registros: ${arr.length}</p>
+                    <table>
+                    <tr><th>Campo</th><th>Tipo</th><th>Valor</th><th>Numerico?</th></tr>
+                    ${fields.map(f => `<tr>
+                        <td>${f.field}</td>
+                        <td>${f.type}</td>
+                        <td class="${f.isNumeric ? 'num' : 'str'}">${JSON.stringify(f.value)}</td>
+                        <td>${f.isNumeric ? '✅' : ''}</td>
+                    </tr>`).join('')}
+                    </table>
+                    <h3>Registros crudos (JSON):</h3>
+                    <pre>${JSON.stringify(arr, null, 2)}</pre>
+                    </body></html>
+                `);
+            } catch (e) {
+                res.json({ error: 'Parse error', message: e.message, rawBody: body.substring(0, 2000) });
+            }
+        });
+    });
+
+    proxyReq.on('error', err => res.status(502).json({ error: err.message }));
+    proxyReq.end();
+});
+
 // Proxy endpoint: /api/odata/* -> https://importadoradavila.acumatica.com/odata/*
 app.use('/api/odata', (req, res) => {
     const odataPath = ACUMATICA_BASE + req.url;
