@@ -327,21 +327,70 @@ const AccountClassifier = {
      * Process all transactions and classify accounts
      * Returns organized data for financial statements
      */
+    /**
+     * Safely parse a numeric value from OData response.
+     * OData often returns numbers as strings; this handles both.
+     */
+    _num(value) {
+        if (value == null) return null;
+        const n = typeof value === 'string' ? parseFloat(value) : Number(value);
+        return isNaN(n) ? null : n;
+    },
+
+    /**
+     * Extract a numeric field from a transaction, trying multiple field names.
+     * Returns 0 if none found.
+     */
+    _getNum(txn, ...fieldNames) {
+        for (const name of fieldNames) {
+            const v = this._num(txn[name]);
+            if (v !== null) return v;
+        }
+        return 0;
+    },
+
+    /**
+     * Extract a string field from a transaction, trying multiple field names.
+     */
+    _getStr(txn, ...fieldNames) {
+        for (const name of fieldNames) {
+            if (txn[name] != null && txn[name] !== '') return String(txn[name]);
+        }
+        return '';
+    },
+
     processTransactions(transactions, year, month) {
         const accountBalances = {};
         const monthlyData = {};
 
+        // Log first record fields for debugging
+        if (transactions.length > 0) {
+            const sample = transactions[0];
+            console.log('[Classifier] Campos OData detectados:', Object.keys(sample));
+            console.log('[Classifier] Primer registro (muestra):', JSON.stringify(sample, null, 2));
+
+            // Log all unique field names across first 5 records
+            const allFields = new Set();
+            transactions.slice(0, 5).forEach(t => Object.keys(t).forEach(k => allFields.add(k)));
+            console.log('[Classifier] Todos los campos encontrados:', [...allFields]);
+        }
+
         for (const txn of transactions) {
-            const acctCD = txn.AccountCD || txn.Account || txn.AccountID || '';
-            const acctName = txn.AccountDescription || txn.AccountName || txn.Description || '';
-            const acctType = txn.AccountType || '';
-            const acctSubtype = txn.AccountSubtype || '';
-            const txnDate = new Date(txn.TranDate || txn.TransactionDate || txn.Date);
+            // Extract fields with multiple name alternatives (Acumatica OData variations)
+            const acctCD = this._getStr(txn, 'AccountCD', 'Account', 'AccountID', 'AccountCode', 'AcctCD', 'Acct');
+            const acctName = this._getStr(txn, 'AccountDescription', 'AccountName', 'Description', 'AcctName', 'AccountDesc');
+            const acctType = this._getStr(txn, 'AccountType', 'Type', 'AcctType');
+            const acctSubtype = this._getStr(txn, 'AccountSubtype', 'Subtype', 'SubType', 'AcctSubtype');
+
+            // Parse date with multiple field name alternatives
+            const rawDate = txn.TranDate || txn.TransactionDate || txn.Date || txn.TranPeriod || txn.FinPeriodID;
+            const txnDate = new Date(rawDate);
+
+            if (isNaN(txnDate)) continue;
+
             const txnYear = txnDate.getFullYear();
             const txnMonth = txnDate.getMonth() + 1;
             const period = `${txnYear}-${String(txnMonth).padStart(2, '0')}`;
-
-            if (isNaN(txnDate)) continue;
 
             const classification = this.classifyAccount(acctCD, acctName, acctType, acctSubtype);
             const key = acctCD || acctName;
@@ -359,10 +408,17 @@ const AccountClassifier = {
                 };
             }
 
-            const amount = txn.Amount || (txn.DebitAmount || 0) - (txn.CreditAmount || 0);
+            // Parse numeric values safely (handles strings from OData)
+            const debitAmt = this._getNum(txn, 'DebitAmount', 'Debit', 'DebitTotal', 'DebitAmt', 'DrAmt', 'CuryDebitAmt', 'CuryDebitTotal');
+            const creditAmt = this._getNum(txn, 'CreditAmount', 'Credit', 'CreditTotal', 'CreditAmt', 'CrAmt', 'CuryCreditAmt', 'CuryCreditTotal');
+            const endBalance = this._getNum(txn, 'Amount', 'Balance', 'EndBalance', 'EndBal', 'BegBalance', 'CuryEndBalance', 'SignedAmount', 'TranAmount');
+
+            // Use EndBalance if available, otherwise compute from Debit - Credit
+            const amount = (endBalance !== 0) ? endBalance : (debitAmt - creditAmt);
+
             accountBalances[key].balance = amount; // For balance sheet, take latest
-            accountBalances[key].debit += txn.DebitAmount || 0;
-            accountBalances[key].credit += txn.CreditAmount || 0;
+            accountBalances[key].debit += debitAmt;
+            accountBalances[key].credit += creditAmt;
 
             if (!accountBalances[key].monthlyBalances[period]) {
                 accountBalances[key].monthlyBalances[period] = 0;

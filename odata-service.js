@@ -183,5 +183,51 @@ const ODataService = {
             console.error('[OData] Error listando entidades:', err.message);
             return [];
         }
+    },
+
+    /**
+     * Diagnostic tool: fetch a few records and display field names, types and sample values.
+     * Call from console: ODataService.diagnose()
+     */
+    async diagnose() {
+        console.log('=== DIAGNÓSTICO OData ===');
+        try {
+            const res = await fetch(`${this.proxyBaseUrl}/JPR-JournalTransactions?$top=3`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) {
+                console.error(`HTTP ${res.status}: ${res.statusText}`);
+                return;
+            }
+            const data = await res.json();
+            const values = data.value || data.d?.results || data.d || [];
+            const records = Array.isArray(values) ? values : [values];
+
+            if (records.length === 0) {
+                console.warn('No se recibieron registros');
+                return;
+            }
+
+            console.log(`Registros recibidos: ${records.length}`);
+            console.log('--- Campos y tipos del primer registro ---');
+            const sample = records[0];
+            const fieldInfo = Object.entries(sample).map(([key, val]) => ({
+                Campo: key,
+                Tipo: typeof val,
+                Valor: val === null ? 'null' : String(val).substring(0, 80)
+            }));
+            console.table(fieldInfo);
+
+            // Highlight numeric-looking fields
+            const numericFields = Object.entries(sample)
+                .filter(([, v]) => v != null && !isNaN(parseFloat(v)))
+                .map(([k, v]) => `${k} = ${v}`);
+            console.log('--- Campos numéricos detectados ---');
+            console.log(numericFields.join('\n'));
+
+            return { fields: Object.keys(sample), sample, records };
+        } catch (err) {
+            console.error('Error en diagnóstico:', err.message);
+        }
     }
 };
